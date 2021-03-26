@@ -1,0 +1,28 @@
+#Translation from jDepac input parameter to CSV column name. See jDepac documentation for more information.;;
+CSVColumnName;jDepacParameterName;Comment
+cmp;s;
+day;d;
+lat;d;
+tmp;t;
+ust;u;
+glr;g;
+sin;e;
+rhp;h;
+wet;w;
+luc;i;
+rns;r;
+BackgroundCmp;o;One parameter with multiple values
+BackgroundNH3;o;One parameter with multiple values
+BackgroundSO2;o;One parameter with multiple values
+ra;a;
+rb;b;
+rc;c;
+ua;U;One parameter with multiple values
+ha;U;One parameter with multiple values
+z0;Z;One parameter with multiple values
+d0;Z;One parameter with multiple values
+km;C;
+lm;L;
+zr;R;
+dae;D;One parameter with multiple values
+rho;D;One parameter with multiple values
