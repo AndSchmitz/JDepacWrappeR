@@ -9,8 +9,8 @@ Wrapper function to run jDepac 0.2 from CSV input.
   - Create a working directory and a subfolder "Input".
   - Copy the files "jDepacWrappeR.R" and "JDepac-0.2.1.jar" (not included in this repository) in the working directory.
   - Copy the files "DemoInput.csv" and "InputMapping.csv" into the "Input" folder.
-  - Open the file "jDepacWrappeR.R" and adjust the variable "WorkDir" to match the path of the working directoy.
-  - Execute the "jDepacWrappeR.R" to run all lines in the "DemoInput.csv" one by one through jDepac. The results will be saved in a folder named "Output" in the working directory.
+  - Open the file "jDepacWrappeR.R" and adjust the variable "WorkDir" to match the path of the working directory.
+  - Execute the "jDepacWrappeR.R" to run all lines in the "DemoInput.csv" one by one through jDepac. The results will be saved in a subfolder named "Output" in the working directory.
   - Change the content "DemoInput.csv" to run different scenarios with jDepac.
  
 
