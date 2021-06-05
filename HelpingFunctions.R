@@ -116,7 +116,7 @@ ConvertCSVInputRowTojDepacInput <- function(OneCSVInputLine) {
   #Treat special columns: -o background concentrations
   BackgroundConcentrations <- paste0(
     "-o",
-    OneCSVInputLine[1,"BackgroundCmp"],
+    OneCSVInputLine[1,"CmpConcentration"],
     ",",
     OneCSVInputLine[1,"BackgroundNH3"],
     ",",
@@ -135,7 +135,7 @@ ConvertCSVInputRowTojDepacInput <- function(OneCSVInputLine) {
   } else if ( nMissing == 3 ) {
     #Else stop
   } else {
-    stop("Values for either all or none of the columns BackgroundCmp, BackgroundNH3, BackgroundSO2 must be provided.")
+    stop("Values for either all or none of the columns CmpConcentration, BackgroundNH3, BackgroundSO2 must be provided.")
   }
   
   #Treat special columns: -U wind speed
@@ -208,7 +208,7 @@ ConvertCSVInputRowTojDepacInput <- function(OneCSVInputLine) {
   }   
   
   #Delete special columsn from CSV
-  SpecialColumns <- c("BackgroundCmp","BackgroundNH3","BackgroundSO2","ua","ha","z0","d0","dae","rho")
+  SpecialColumns <- c("CmpConcentration","BackgroundNH3","BackgroundSO2","ua","ha","z0","d0","dae","rho")
   CurrentCSVInputLine <- CurrentCSVInputLine[!(colnames(CurrentCSVInputLine) %in% SpecialColumns)]
   
   #Append remaining columns one by one to jDepacInputString
