@@ -67,8 +67,8 @@ CSVInput[!is.na(CSVInput) & (CSVInput == "")] <- NA
 
 
 #Run batch-----
-#Empty dataframe for batch results
-BatchOutput <- data.frame()
+#Empty list for batch results
+BatchOutput <- list()
 #Loop through input CSV rows
 for ( iCSVInput in 1:nrow(CSVInput) ) {
   CurrentCSVInputLine <- CSVInput[iCSVInput,]
@@ -104,9 +104,15 @@ for ( iCSVInput in 1:nrow(CSVInput) ) {
   )
   
   #Append NewOutputRow row to batch output
-  BatchOutput <- bind_rows(BatchOutput,NewOutputRow)
+  BatchOutput[[iCSVInput]] <- NewOutputRow
   
 }
+
+#Convert BatchOutput from list to dataframe
+do.call(
+  what = bind_rows(),
+  args = BatchOutput
+)
 
 
 #Save batch results-----
