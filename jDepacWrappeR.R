@@ -71,6 +71,7 @@ CSVInput[!is.na(CSVInput) & (CSVInput == "")] <- NA
 #Empty list for batch results
 BatchOutput <- list()
 #Loop through input CSV rows
+IsFirstSave <- T
 for ( iCSVInput in 1:nrow(CSVInput) ) {
   CurrentCSVInputLine <- CSVInput[iCSVInput,]
   CurrentjDepacInput <- ConvertCSVInputRowTojDepacInput(CurrentCSVInputLine)
@@ -116,8 +117,7 @@ for ( iCSVInput in 1:nrow(CSVInput) ) {
       what = bind_rows,
       args = BatchOutput
     )
-    #Save batch results
-    IsFirstSave <- iCSVInput == SaveEveryNumSimulations
+    #Save batch results    
     write.table(
       x = BatchOutput,
       file = BatchOutputFileName,
@@ -136,6 +136,7 @@ for ( iCSVInput in 1:nrow(CSVInput) ) {
         no = T
       )
     )
+    IsFirstSave <- F
     #Empty list for next batch results
     BatchOutput <- list()
   }
