@@ -11,7 +11,7 @@ rhp;h;
 wet;w;
 luc;i;
 rns;r;
-BackgroundCmp;o;One parameter with multiple values
+CmpConcentration;o;One parameter with multiple values
 BackgroundNH3;o;One parameter with multiple values
 BackgroundSO2;o;One parameter with multiple values
 ra;a;
