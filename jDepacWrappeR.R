@@ -52,6 +52,7 @@ InputTranslation <- read.table(
 
 
 # --- No changes required below this line ---
+BatchOutputFileName <- file.path(OutDir,paste0("BatchRun-",format(Sys.time(),format = "%Y-%m-%d-%H-%M-%S"),".csv"))
 
 
 #Check CSV input----
@@ -106,23 +107,37 @@ for ( iCSVInput in 1:nrow(CSVInput) ) {
   #Append NewOutputRow row to batch output
   BatchOutput[[iCSVInput]] <- NewOutputRow
   
-}
+  #Save results and clear memory every 1000 input rows
+  #to avoid memory problems
+  SaveEveryNumSimulations <- 1000
+  if ( (iCSVInput %% SaveEveryNumSimulations == 0) | (iCSVInput == nrow(CSVInput)) ) {
+    #Convert BatchOutput from list to dataframe
+    BatchOutput <- do.call(
+      what = bind_rows,
+      args = BatchOutput
+    )
+    #Save batch results
+    IsFirstSave <- iCSVInput == SaveEveryNumSimulations
+    write.table(
+      x = BatchOutput,
+      file = BatchOutputFileName,
+      sep = ";",
+      row.names = F,
+      #Write column names only at the first save operation
+      col.names = ifelse(
+        test = IsFirstSave,
+        yes = T,
+        no = F
+      ),
+      #Append on every following save operation
+      append = ifelse(
+        test = IsFirstSave,
+        yes = F,
+        no = T
+      )
+    )
+    #Empty list for next batch results
+    BatchOutput <- list()
+  }
 
-#Convert BatchOutput from list to dataframe
-BatchOutput <- do.call(
-  what = bind_rows,
-  args = BatchOutput
-)
-
-
-#Save batch results-----
-write.table(
-  x = BatchOutput,
-  file = file.path(OutDir,paste0("BatchRun-",format(Sys.time(),format = "%Y-%m-%d-%H-%M-%S"),".csv")),
-  sep = ";",
-  row.names = F
-)
-
-
-
-
+} #End of loop over input CSV rows
