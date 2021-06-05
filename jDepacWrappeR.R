@@ -109,7 +109,7 @@ for ( iCSVInput in 1:nrow(CSVInput) ) {
 }
 
 #Convert BatchOutput from list to dataframe
-do.call(
+BatchOutput <- do.call(
   what = bind_rows,
   args = BatchOutput
 )
