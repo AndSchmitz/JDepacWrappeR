@@ -17,6 +17,14 @@ ParsejDepacResponse <- function(jDepacResponse) {
   #Each row consists of an identifier (CRA, CRB, CRC, VDP) followed by whitespace and numer of key=value pairs
   ListOfParsedResponses <- list()
   for ( i in 2:length(jDepacResponse) ) {
+    
+    #Skip unexpected output rows:
+    ValidLineStarts <- c("CRA", "CRB", "CRC", "VDP")
+    CurrentLineStart <- substr(x =jDepacResponse[i], start = 1, stop = 3)
+    if ( !(CurrentLineStart %in% ValidLineStarts) ) {
+      next
+    }
+    
     CurrentResponseComponent <- unlist(strsplit(
       x = jDepacResponse[i],
       split = " "
