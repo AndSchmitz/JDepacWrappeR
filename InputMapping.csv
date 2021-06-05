@@ -2,7 +2,7 @@
 CSVColumnName;jDepacParameterName;Comment
 cmp;s;
 day;d;
-lat;d;
+lat;l;
 tmp;t;
 ust;u;
 glr;g;
