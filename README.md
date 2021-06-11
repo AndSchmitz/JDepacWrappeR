@@ -15,3 +15,5 @@ Wrapper function to run jDepac 0.2 from CSV input.
  
 
 Currently only tested for MS Windows.
+
+How to download: Click on "Code" (green button, top right), then "Download ZIP".
