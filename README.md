@@ -1,5 +1,5 @@
 # jDepacWrappeR
-Wrapper function to run jDepac 0.2 from CSV input. 
+Wrapper function to run jDepac from CSV input. 
  - See DemoInput.csv for definition of input CSV structure. Column "ID" can be used to identify simulations (e.g. a location name and/or timestamp). It is the only column that is not provided to jDepac as input.
  - See InputMapping.csv for information how CSV column names map to jDepac parameter names.
  - See DemoBatchOutput.csv for an example of batch results.
@@ -16,6 +16,9 @@ Wrapper function to run jDepac 0.2 from CSV input.
 Currently only tested for MS Windows.
 
 ## Update history
+ - Update 2021-06-28
+    - Fixed inconsistency in output table structure if substances with less output columns (e.g. particles) are simulated before substances with more output column (e.g. NH3)
+    - UNDEF in jDepac results is now saved as NA
  - Update 2021-06-27
    - Added update history in readme file 
  - Update 2021-06-05
