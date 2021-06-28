@@ -1,4 +1,4 @@
-ID;cmp;day;lat;tmp;ust;glr;sin;rhp;wet;luc;rns;CmpConcentration;BackgroundNH3;BackgroundSO2;ua;ha;z0;d0;km;lm;zr;dae;rho
-1;;;;15;;;;;;;;;;;;;;;;;;;
-2;;;;;;;;;;;;;;;;;;;;;1.5;10;1
-3;;;;;;;;;;;;0.1;0.2;0.3;4;5;0.6;0.2;;;;;
+"ID";"cmp";"day";"lat";"tmp";"ust";"glr";"sin";"rhp";"wet";"luc";"rns";"CmpConcentration";"BackgroundNH3";"BackgroundSO2";"ua";"ha";"z0";"d0";"km";"lm";"zr";"dae";"rho"
+1;"SomeParticle";;;;;;;;;;;;;;;;;;;;"1.5";10;1
+2;"NH3";;;-2;;;;;;;;;;;;;;;;;;;
+3;"SO2";;;;;;;;;;;"0.1";"0.2";"0.3";4;5;"0.6";"0.2";;;;;

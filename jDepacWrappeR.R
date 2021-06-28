@@ -11,16 +11,23 @@ options(
   dplyr.summarise.inform=F #Disable unnecessary info messages
 )
 
-
 library(tidyverse) #load library for easy data handling
 library(stringr) #string handling
 
 
-#Prepare I/O
-#Set working directory, use \\
-WorkDir <- "D:\\Users\\Schmitz12\\Desktop\\NotSyncToY\\Projekte\\VDI\\Vergleich DEPAC KRB\\Simulationen"
+#Set working directory, use \\ or /
+WorkDir <- "/path/to/your/WorkDir"
+
 #jDepac JAR file name (must be located in WorkDir)
 jDepacJAR <- "JDepac-0.2.1.jar"
+
+
+
+# --- No changes required below this line ---
+
+
+
+#Preparations----
 #Load helper functions 
 #Script HelpingFunctions.R must be located in WorkDir
 source(file.path(WorkDir,"HelpingFunctions.R"))
@@ -30,7 +37,7 @@ OutDir <- file.path(WorkDir,"Output")
 #Create output directory if not existing
 dir.create(OutDir,showWarnings = F)
 
-#Read input CSV
+#Read input CSV-----
 #Must be located in folder "Input" in WorkDir
 CSVInput <- read.table(
   file = file.path(InDir,"DemoInput.csv"),
@@ -65,6 +72,58 @@ if ( length(WrongInputCols) > 0 ) {
 }
 #Convert empty string to NA, required later
 CSVInput[!is.na(CSVInput) & (CSVInput == "")] <- NA
+
+
+#Guess output table structure------
+#The number of output elements differs for different values in JDepac input parameter "cmp",
+#e.g. between particles, HNO3 and NH3. In order to guarantee a consistent column structure in the
+#output CSV for potentially mixed occurrences of different substances, all ocurring output
+#columns are determined in advance. This is done by running the first occurrence (line) of each
+#substance in the input CSV through jDepac and aggregating all occurring output elements/columns.
+CSVInput_FirstOccurrenceEachSubstance <- CSVInput %>%
+  group_by(cmp) %>%
+  mutate(
+    n = 1:n()
+  ) %>%
+  ungroup() %>%
+  filter(
+    n == 1
+  )
+OutputCols <- vector() #Vector with all output column names that will occur
+for ( iTestInput in 1:nrow(CSVInput_FirstOccurrenceEachSubstance) ) {
+  CurrentCSVInputLine <- CSVInput_FirstOccurrenceEachSubstance[iTestInput,]
+  CurrentjDepacInput <- ConvertCSVInputRowTojDepacInput(CurrentCSVInputLine)
+  #Running jDepac with current parametrization
+  jDepacResponse <- system(
+    command = paste0("java -jar \"", file.path(WorkDir,jDepacJAR),"\" ",CurrentjDepacInput),
+    intern = T
+  )
+  #Catch some errors
+  if ( any(grepl(x = jDepacResponse, pattern = "usage")) ) {
+    print(jDepacResponse)
+    stop("Error - stopping")
+  }
+  if ( any(grepl(x = jDepacResponse, pattern = "Exception")) ) {
+    print(jDepacResponse)
+    stop("Error - stopping")
+  }
+  #Convert jDepacResponse to data.frame
+  jDepacResponseDF <- ParsejDepacResponse(jDepacResponse)
+  OutputCols <- unique(c(OutputCols, colnames(jDepacResponseDF)))
+}
+#Create dumm dataframe with all expected columns
+DummyDF <- data.frame(
+  matrix(
+    data = rep(NA, length(OutputCols)),
+    ncol = length(OutputCols)
+  )
+)
+colnames(DummyDF) <- OutputCols
+DummyDF <- DummyDF %>%
+  mutate(
+    ID = NA
+  ) %>%
+  select(ID, version, everything())
 
 
 #Run batch-----
@@ -105,12 +164,23 @@ for ( iCSVInput in 1:nrow(CSVInput) ) {
     jDepacResponseDF
   )
   
+  #Make sure all columns are present (potentially with NA values)
+  NewOutputRow <- bind_rows(
+    DummyDF,
+    NewOutputRow
+  )
+  #Drop first row (NA) from DummyDF
+  NewOutputRow <- NewOutputRow[-1,]
+  
+  #Convert UNDEF to NA to have columns of type numeric
+  NewOutputRow[NewOutputRow == "UNDEF"] <- NA
+  
   #Append NewOutputRow row to batch output
   BatchOutput[[iCSVInput]] <- NewOutputRow
   
-  #Save results and clear memory every 1000 input rows
+  #Save results and clear memory every SaveEveryNumSimulations input rows
   #to avoid memory problems
-  SaveEveryNumSimulations <- 1000
+  SaveEveryNumSimulations <- 100
   if ( (iCSVInput %% SaveEveryNumSimulations == 0) | (iCSVInput == nrow(CSVInput)) ) {
     #Convert BatchOutput from list to dataframe
     BatchOutput <- do.call(
