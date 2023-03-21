@@ -1,6 +1,12 @@
 #
 #Script to run jDepac as batch (CSV -> jDepac -> CSV)
 #
+#It tries to run JDpeac on all .txt files located in the subfolder "Input" in
+#the directory specified by variable "WorkDir" below.
+#
+#All JDepac outputs are put in a subfolder named "Output" in the directory
+#specified by variable "WorkDir" below.
+#
 
 
 #init-----
@@ -11,131 +17,89 @@ options(
   dplyr.summarise.inform=F #Disable unnecessary info messages
 )
 
-library(tidyverse) #load library for easy data handling
+#library(tidyverse) #load library for easy data handling
 library(stringr) #string handling
 
 
 #Set working directory, use \\ or /
-WorkDir <- "/Path/To/WorkDir"
+WorkDir <- "/home/user/JDepacExamples"
 
 #Name of JDepac JAR file (must be located in WorkDir)
-jDepacJAR <- "JDepac-0.3.0.jar"
-
-#Name of input file, expected in subfolder "Input" of WorkDir
-InputCSVName <- "DemoInput.csv"
+jDepacJAR <- "JDepac_v06.jar"
 
 
-# --- No changes required below this line ---
+#You may need to adjust the line calling java below
+#"java -jar ....." depending on your settings.
+
+
 
 
 #Preparations----
 #Load helper functions 
 #Script HelpingFunctions.R must be located in WorkDir
-source(file.path(WorkDir,"HelpingFunctions.R"))
+# source(file.path(WorkDir,"HelpingFunctions.R"))
 #Set input/output directories
 InDir <- file.path(WorkDir,"Input")
 OutDir <- file.path(WorkDir,"Output")
 #Create output directory if not existing
 dir.create(OutDir,showWarnings = F)
-#Name for output file
-BatchOutputFileName <- file.path(OutDir,paste0("BatchRun-",format(Sys.time(),format = "%Y-%m-%d-%H-%M-%S"),".csv"))
 
-#Read input CSV-----
-#Must be located in folder "Input" in WorkDir
-CSVInput <- read.table(
-  file = file.path(InDir,InputCSVName),
-  sep = ";",
-  header = T,
-  stringsAsFactors = F
+
+#Loop over input files-----
+InputFiles <- list.files(
+  path = InDir,
+  pattern = ".txt",
+  full.names = T
 )
+for ( CurrentInputFile in InputFiles ) {
+  
+  print(paste("Running jDepac for file",basename(CurrentInputFile),"..."))
 
-#Check CSV input----
-#Minimal check of CSV input validity
-CSVCols <- colnames(CSVInput)
-CSVCols <- CSVCols[CSVCols != "ID"]
-#Convert empty string to NA, required later
-CSVInput[!is.na(CSVInput) & (CSVInput == "")] <- NA
-
-#Run batch-----
-#Empty list for batch results
-BatchOutput <- list()
-#Loop through input CSV rows
-IsFirstSave <- T
-for ( iCSVInput in 1:nrow(CSVInput) ) {
-  CurrentCSVInputLine <- CSVInput[iCSVInput,]
-  CurrentjDepacInput <- ConvertCSVInputRowTojDepacInput(CurrentCSVInputLine)
-  CurrentID <- CSVInput$ID[iCSVInput]
-
-  print(paste("Running jDepac on input CSV ID:",CurrentID,"- parameters:",CurrentjDepacInput))
-  #Running jDepac with current parametrization
-  jDepacResponse <- system(
-    command = paste0("java -jar \"", file.path(WorkDir,jDepacJAR),"\" ",CurrentjDepacInput),
-    intern = T
+  #_Run file-----
+  Command <- paste0(
+    "java -jar \"", file.path(WorkDir, jDepacJAR), "\" \"", CurrentInputFile, "\" --series" 
+  )
+  print(Command)
+  
+  system(
+    command = Command
   )
   
-  #Catch some errors
-  if ( any(grepl(x = jDepacResponse, pattern = "usage")) ) {
-    print(jDepacResponse)
-    stop(paste("Error with ID",CurrentID," - stopping."))
+  #_Clean up results-----
+  ResultCSV_From <- gsub(
+    x = CurrentInputFile,
+    pattern = "txt$",
+    replacement = "csv"
+  )
+  if ( !file.exists(ResultCSV_From) ) {
+    stop("!file.exists(ResultCSV_From)")
   }
-  if ( any(grepl(x = jDepacResponse, pattern = "Exception")) ) {
-    print(jDepacResponse)
-    stop(paste("Error with ID",CurrentID," - stopping."))
-  }
-  
-  #Convert jDepacResponse to data.frame
-  jDepacResponseDF <- ParsejDepacResponse(jDepacResponse)
-  
-  #Add ID to jDepacResponse
-  NewOutputRow <- bind_cols(
-    data.frame(
-      ID = CurrentID
-    ),
-    jDepacResponseDF
+  ResultCSV_To <- file.path(OutDir, basename(ResultCSV_From))
+  ResultCSV_To <- gsub(
+    x = ResultCSV_To,
+    pattern = "Input",
+    replacement = "Output"
+  )
+  file.rename(
+    from = ResultCSV_From,
+    to = ResultCSV_To
+  )
+  #Also move log file
+  LogBaseName <- gsub(
+    x = basename(ResultCSV_From),
+    pattern = "\\csv$",
+    replacement = "log"
+  )
+  file.rename(
+    from = file.path(InDir, LogBaseName),
+    to = file.path(OutDir, LogBaseName)
   )
   
-  #Convert UNDEF to NA to have columns of type numeric
-  #From version <0.3.0. Still relevant?
-  NewOutputRow[NewOutputRow == "UNDEF"] <- NA
   
-  #Append NewOutputRow row to batch output
-  BatchOutput[[iCSVInput]] <- NewOutputRow
+  # stop("..")
+  #Finish-----
+  print(paste("jDepacWrappeR finished with file",CurrentInputFile))
   
-  #Save results and clear memory every SaveEveryNumSimulations input rows
-  #to avoid memory problems
-  SaveEveryNumSimulations <- 100
-  if ( (iCSVInput %% SaveEveryNumSimulations == 0) | (iCSVInput == nrow(CSVInput)) ) {
-    #Convert BatchOutput from list to dataframe
-    BatchOutput <- do.call(
-      what = bind_rows,
-      args = BatchOutput
-    )
-    #Save batch results    
-    write.table(
-      x = BatchOutput,
-      file = BatchOutputFileName,
-      sep = ";",
-      row.names = F,
-      #Write column names only at the first save operation
-      col.names = ifelse(
-        test = IsFirstSave,
-        yes = T,
-        no = F
-      ),
-      #Append on every following save operation
-      append = ifelse(
-        test = IsFirstSave,
-        yes = F,
-        no = T
-      )
-    )
-    IsFirstSave <- F
-    #Empty list for next batch results
-    BatchOutput <- list()
-  }
+} #end of loop over input files
 
-} #End of loop over input CSV rows
-
-#Finish-----
-print("jDepacWrappeR finished.")
-
+  
