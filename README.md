@@ -1,5 +1,5 @@
 # JDepacWrappeR
-Wrapper function to run multiple input CSV files through JDepac 0.6.0.
+Wrapper function to run multiple input CSV files through JDepac
 
  - See DemoInput.csv for definition of input CSV structure.
  
